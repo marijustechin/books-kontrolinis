@@ -1,4 +1,6 @@
 const express = require("express");
+const cookieParser = require("cookie-parser"); // refreshToken saugosime cookies
+const errorsMiddleware = require("./middlewares/error.middleware");
 
 // endpointai
 const userRouter = require("./routers/user.router");
@@ -9,21 +11,13 @@ const app = express();
 
 // Midlvares visokios
 app.use(express.json());
-// app.use(
-//   cors({
-//     // Dėl slapukų ir cross-origin resource share
-//     // turi būti nurodomas fronto URL
-//     credentials: true,
-//     origin: process.env.CLIENT_URL,
-//   })
-// );
-// app.use(cookieParser());
+app.use(cookieParser());
 
 app.use("/api/v1/books", bookRouter);
 app.use("/api/v1/auth", userRouter);
 app.use("/api/v1/authors", authorRouter);
 
 // sitoj eilej klaidos turi buti paskutines
-// app.use(errorsMiddleware);
+app.use(errorsMiddleware);
 
 module.exports = app;

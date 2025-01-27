@@ -1,5 +1,10 @@
 const sequelize = require("../db");
-const { book } = sequelize.models;
+const { book, author } = sequelize.models;
+
+const userService = require("../services/user.service");
+
+const jwt = require("jsonwebtoken");
+const ApiError = require("../exceptions/api.errors");
 
 class BooksController {
   // - `GET /books`: Gauti visų knygų sąrašą. ** 0.5 taškas **
@@ -24,7 +29,13 @@ class BooksController {
   // - `POST /books`: Sukurti naują knygą (tik admin). ** 0.5 taškas **
   async newBook(req, res, next) {
     try {
+      await userService.isUserAdmin(req.cookies);
+
       const { title, summary, isbn, author_id } = req.body;
+
+      const existingAuthor = await author.findOne({ where: { id: author_id } });
+
+      if (!existingAuthor) throw ApiError.BadRequest("Toks autorius nerastas");
 
       const newBook = await book.create({ title, summary, isbn, author_id });
 
@@ -37,6 +48,8 @@ class BooksController {
   // - `PATCH /books/:id`: Atnaujinti knygos informaciją (tik admin). ** 0.5 taškas **
   async updateBook(req, res, next) {
     try {
+      await userService.isUserAdmin(req.cookies);
+
       const updatedBook = await book.findOne({ where: { id: req.params.id } });
 
       if (!updatedBook) throw new Error("tokios knygos nera");
@@ -59,6 +72,15 @@ class BooksController {
   // - `DELETE /books/:id`: Ištrinti knygą (tik admin). ** 0.5 taškas **
   async deleteBook(req, res, next) {
     try {
+      await userService.isUserAdmin(req.cookies);
+
+      const deletedBook = await book.findOne({ where: { id: req.params.id } });
+
+      if (!deletedBook) throw new Error("Tokios knygos nepavyko rasti");
+
+      await deletedBook.destroy();
+
+      res.status(200).json({ success: "success" });
     } catch (e) {
       next(e);
     }

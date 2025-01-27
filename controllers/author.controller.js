@@ -1,5 +1,6 @@
 const sequelize = require("../db");
 const { author } = sequelize.models;
+const userService = require("../services/user.service");
 
 class AuthorController {
   // - `GET /authors`: Gauti visų autorių sąrašą. ** 0.5 taškas **
@@ -29,6 +30,8 @@ class AuthorController {
   // - `POST /authors`: Sukurti naują autorių (tik admin). ** 0.5 taškas **
   async newAuthor(req, res, next) {
     try {
+      await userService.isUserAdmin(req.cookies);
+
       const { name, birthDate, biography } = req.body;
 
       const existingAuthor = await author.findOne({ where: { name } });
@@ -46,6 +49,8 @@ class AuthorController {
   // - `PATCH /authors/:id`: Atnaujinti autoriaus informaciją (tik admin). ** 0.5 taškas **
   async updateAuthor(req, res, next) {
     try {
+      await userService.isUserAdmin(req.cookies);
+
       const updateAuthor = await author.findOne({
         where: { id: req.params.id },
       });
@@ -69,6 +74,8 @@ class AuthorController {
   // - `DELETE /authors/:id`: Ištrinti autorių (tik admin). ** 0.5 taškas **
   async deleteAuthor(req, res, next) {
     try {
+      await userService.isUserAdmin(req.cookies);
+
       const deleteAuthor = await author.findOne({
         where: { id: req.params.id },
       });

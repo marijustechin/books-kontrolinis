@@ -12,4 +12,6 @@ userRouter.post("/login", userController.login);
 // - Tik vartotojai su vaidmeniu `admin` gali kurti,
 // atnaujinti ir trinti autorius ar knygas. ** 2 taškai **
 
+userRouter.post("/logout", userController.logout);
+
 module.exports = userRouter;
