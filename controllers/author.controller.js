@@ -1,6 +1,8 @@
-const sequelize = require("../db");
+const sequelize = require('../db');
 const { author } = sequelize.models;
-const userService = require("../services/user.service");
+const userService = require('../services/user.service');
+const { validationResult } = require('express-validator');
+const ApiError = require('../exceptions/api.errors');
 
 class AuthorController {
   // - `GET /authors`: Gauti visų autorių sąrašą. ** 0.5 taškas **
@@ -55,7 +57,7 @@ class AuthorController {
         where: { id: req.params.id },
       });
 
-      if (!updateAuthor) throw new Error("Author not found");
+      if (!updateAuthor) throw new Error('Author not found');
 
       const { name, birthDate, biography } = req.body;
 
@@ -80,11 +82,11 @@ class AuthorController {
         where: { id: req.params.id },
       });
 
-      if (!deleteAuthor) throw new Error("Autorius nerastas");
+      if (!deleteAuthor) throw new Error('Autorius nerastas');
 
       await deleteAuthor.destroy();
 
-      res.status(200).json({ success: "success" });
+      res.status(200).json({ success: 'success' });
     } catch (e) {
       next(e);
     }

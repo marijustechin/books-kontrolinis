@@ -1,10 +1,11 @@
-const sequelize = require("../db");
+const sequelize = require('../db');
 const { book, author } = sequelize.models;
+const { validationResult } = require('express-validator');
+const ApiError = require('../exceptions/api.errors');
 
-const userService = require("../services/user.service");
+const userService = require('../services/user.service');
 
-const jwt = require("jsonwebtoken");
-const ApiError = require("../exceptions/api.errors");
+const jwt = require('jsonwebtoken');
 
 class BooksController {
   // - `GET /books`: Gauti visų knygų sąrašą. ** 0.5 taškas **
@@ -29,13 +30,20 @@ class BooksController {
   // - `POST /books`: Sukurti naują knygą (tik admin). ** 0.5 taškas **
   async newBook(req, res, next) {
     try {
+      const validationErrors = validationResult(req);
+
+      if (!validationErrors.isEmpty())
+        return next(
+          ApiError.BadRequest('Validacijos klaida', validationErrors.array())
+        );
+
       await userService.isUserAdmin(req.cookies);
 
       const { title, summary, isbn, author_id } = req.body;
 
       const existingAuthor = await author.findOne({ where: { id: author_id } });
 
-      if (!existingAuthor) throw ApiError.BadRequest("Toks autorius nerastas");
+      if (!existingAuthor) throw ApiError.BadRequest('Toks autorius nerastas');
 
       const newBook = await book.create({ title, summary, isbn, author_id });
 
@@ -48,11 +56,18 @@ class BooksController {
   // - `PATCH /books/:id`: Atnaujinti knygos informaciją (tik admin). ** 0.5 taškas **
   async updateBook(req, res, next) {
     try {
+      const validationErrors = validationResult(req);
+
+      if (!validationErrors.isEmpty())
+        return next(
+          ApiError.BadRequest('Validacijos klaida', validationErrors.array())
+        );
+
       await userService.isUserAdmin(req.cookies);
 
       const updatedBook = await book.findOne({ where: { id: req.params.id } });
 
-      if (!updatedBook) throw new Error("tokios knygos nera");
+      if (!updatedBook) throw new Error('tokios knygos nera');
 
       const { title, summary, isbn, author_id } = req.body;
 
@@ -76,11 +91,11 @@ class BooksController {
 
       const deletedBook = await book.findOne({ where: { id: req.params.id } });
 
-      if (!deletedBook) throw new Error("Tokios knygos nepavyko rasti");
+      if (!deletedBook) throw new Error('Tokios knygos nepavyko rasti');
 
       await deletedBook.destroy();
 
-      res.status(200).json({ success: "success" });
+      res.status(200).json({ success: 'success' });
     } catch (e) {
       next(e);
     }
